@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Inicio — Nido de Peluches{% endblock %}
+{% block content %}
+<section class="row justify-content-center mb-4">
+    <div class="col-lg-10 text-center">
+        <h1 class="display-5 fw-bold">Un nuevo hogar para cada peluche</h1>
+        <p class="lead">Comparte esos peluches que merecen seguir acompañando a alguien.</p>
+    </div>
+</section>
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5 mb-4">
+        <div class="card h-100">
+            <div class="card-header card-header-nido p-3"><h2 class="h4 mb-0">Crear cuenta</h2></div>
+            <div class="card-body p-4">
+                <form action="/registro" method="POST" novalidate>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre</label>
+                        <input id="nombre" type="text" name="nombre" class="form-control" minlength="2" maxlength="50" required autocomplete="given-name" value="{{ reg_data.nombre if reg_data else '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="apellido" class="form-label">Apellido</label>
+                        <input id="apellido" type="text" name="apellido" class="form-control" minlength="2" maxlength="50" required autocomplete="family-name" value="{{ reg_data.apellido if reg_data else '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="email-registro" class="form-label">Correo electrónico</label>
+                        <input id="email-registro" type="email" name="email" class="form-control" maxlength="100" required autocomplete="email" value="{{ reg_data.email if reg_data else '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password-registro" class="form-label">Contraseña</label>
+                        <input id="password-registro" type="password" name="password" class="form-control" minlength="6" required autocomplete="new-password">
+                        <div class="form-text">Entre 6 caracteres y 72 bytes UTF-8.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmar" class="form-label">Confirmar contraseña</label>
+                        <input id="confirmar" type="password" name="confirmar" class="form-control" minlength="6" required autocomplete="new-password">
+                    </div>
+                    <button type="submit" class="btn btn-nido w-100">Crear cuenta</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-5 mb-4">
+        <div class="card h-100">
+            <div class="card-header card-header-nido-sec p-3"><h2 class="h4 mb-0">Ya tengo cuenta</h2></div>
+            <div class="card-body p-4">
+                <form action="/login" method="POST" novalidate>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label for="email-login" class="form-label">Correo electrónico</label>
+                        <input id="email-login" type="email" name="email" class="form-control" maxlength="100" required autocomplete="username" value="{{ login_email if login_email else '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password-login" class="form-label">Contraseña</label>
+                        <input id="password-login" type="password" name="password" class="form-control" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn btn-adoptar w-100">Entrar</button>
+                </form>
+                <div class="mt-4 p-3 rounded" style="background:#f3eadf">
+                    <p class="mb-0">Dona con cariño, descubre peluches disponibles y ayuda a que encuentren una nueva familia.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

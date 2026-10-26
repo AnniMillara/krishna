@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Error {{ codigo }} — Nido de Peluches{% endblock %}
+{% block content %}
+<div class="text-center mt-5">
+    <div class="display-1 fw-bold" style="color:#8b5e3c;">{{ codigo }}</div>
+    <h1 class="h3">No pudimos completar tu solicitud</h1>
+    <p class="lead">{{ mensaje }}</p>
+    <a href="/" class="btn btn-nido">Volver al inicio</a>
+</div>
+{% endblock %}
