@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Donación★Peluches | Acceso{% endblock %}
+
+{% block content %}
+<div class="grid-2" style="margin-top: 40px;">
+    <div class="card">
+        <h2>Registro</h2>
+        <form action="{{ url_for('registro') }}" method="POST">
+            <div class="form-inline">
+                <label>Nombre</label>
+                <input type="text" name="nombre" class="form-control"
+                    value="{{ form_data.nombre if form_data else '' }}" required>
+            </div>
+            <div class="form-inline">
+                <label>Apellido</label>
+                <input type="text" name="apellido" class="form-control"
+                    value="{{ form_data.apellido if form_data else '' }}" required>
+            </div>
+            <div class="form-inline">
+                <label>E-mail</label>
+                <input type="email" name="email" class="form-control" value="{{ form_data.email if form_data else '' }}"
+                    required>
+            </div>
+            <div class="form-inline">
+                <label>Contraseña</label>
+                <input type="password" name="contrasena" class="form-control" required>
+            </div>
+            <div class="form-inline">
+                <label>Conf. Contraseña</label>
+                <input type="password" name="confirmar_contrasena" class="form-control" required>
+            </div>
+            <div style="text-align: right; margin-top: 20px;">
+                <button type="submit" class="btn btn-primary">Registrar</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>Inicio de Sesión</h2>
+        <form action="{{ url_for('login') }}" method="POST">
+            <div class="form-inline">
+                <label>E-mail</label>
+                <input type="email" name="email" class="form-control" required>
+            </div>
+            <div class="form-inline">
+                <label>Contraseña</label>
+                <input type="password" name="contrasena" class="form-control" required>
+            </div>
+            <div style="text-align: right; margin-top: 20px;">
+                <button type="submit" class="btn btn-dark">Iniciar Sesión</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

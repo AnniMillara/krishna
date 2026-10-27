@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Donación★Peluches | {{ 'Editar' if peluche and peluche.id_peluche else 'Nueva' }} Donación{% endblock
+%}
+
+{% block content %}
+<div class="page-header">
+    <h2>{{ 'Editar Donación' if peluche and peluche.id_peluche else 'Nueva Donación' }}</h2>
+    <div>
+        <a href="{{ url_for('peluches') }}" class="btn btn-secondary btn-sm">Inicio</a>
+        <a href="{{ url_for('logout') }}" class="btn btn-secondary btn-sm">Cerrar Sesión</a>
+    </div>
+</div>
+
+<div class="card" style="max-width: 700px;">
+    <form
+        action="{{ url_for('modificar_peluche', id=peluche.id_peluche) if peluche and peluche.id_peluche else url_for('crear_peluche') }}"
+        method="POST">
+        <div class="form-inline">
+            <label>Nombre</label>
+            <input type="text" name="nombre" class="form-control" value="{{ peluche.nombre if peluche else '' }}"
+                required>
+        </div>
+        <div class="form-inline" style="align-items: flex-start;">
+            <label>Descripción</label>
+            <textarea name="descripcion" class="form-control" rows="5"
+                required>{{ peluche.descripcion if peluche else '' }}</textarea>
+        </div>
+        <div style="text-align: right; margin-top: 20px;">
+            <button type="submit" class="btn btn-dark">Guardar</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

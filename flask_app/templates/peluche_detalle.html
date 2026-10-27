@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Donación★Peluches | {{ peluche.nombre }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div></div>
+    <div>
+        <a href="{{ url_for('peluches') }}" class="btn btn-secondary btn-sm">Inicio</a>
+        <a href="{{ url_for('logout') }}" class="btn btn-secondary btn-sm">Cerrar Sesión</a>
+    </div>
+</div>
+
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+    <h1 class="detail-title">{{ peluche.nombre }}</h1>
+
+    <div style="margin-bottom: 20px;">
+        <strong style="display: inline-block; width: 100px;">Dueño:</strong>
+        {{ peluche.donador_nombre }} {{ peluche.donador_apellido }}
+    </div>
+
+    <div style="margin-bottom: 20px;">
+        <strong style="display: inline-block; width: 100px; vertical-align: top;">Descripción:</strong>
+        {{ peluche.descripcion }}
+    </div>
+
+    <div class="info-band">
+        {% if peluche.adoptador_id %}
+        <strong>Adoptado por:</strong> {{ peluche.adoptador_nombre }} {{ peluche.adoptador_apellido }}
+        {% else %}
+        <strong>Estado:</strong> En busca de familia.
+        {% endif %}
+    </div>
+
+    <div class="info-band">
+        <strong>Visitas:</strong> {{ peluche.visitas }}
+    </div>
+
+    <div style="margin-top: 30px;">
+        {% if peluche.donador_id == session['id_usuario'] %}
+        <a href="{{ url_for('editar_peluche', id=peluche.id_peluche) }}" class="btn btn-dark">Editar</a>
+        <a href="{{ url_for('confirmar_eliminar_peluche', id=peluche.id_peluche) }}" class="btn btn-danger">Borrar</a>
+        {% elif not peluche.adoptador_id %}
+        <form action="{{ url_for('adoptar_peluche', id=peluche.id_peluche) }}" method="POST" style="display:inline;">
+            <button type="submit" class="btn btn-dark">Adoptar</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

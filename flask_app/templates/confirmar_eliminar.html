@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Donación★Peluches | Confirmar Eliminación{% endblock %}
+
+{% block content %}
+<div class="card"
+    style="max-width: 600px; margin: 40px auto; text-align: center; border-left: 5px solid var(--danger);">
+    <h3 style="color: var(--danger);">Confirmar eliminación</h3>
+    <p style="margin-bottom: 30px;">{{ mensaje }}</p>
+
+    <div style="display: flex; gap: 15px; justify-content: center;">
+        <a href="{{ accion }}" class="btn btn-danger">Sí, eliminar</a>
+        <a href="{{ url_for('peluches') }}" class="btn btn-secondary">Cancelar</a>
+    </div>
+</div>
+{% endblock %}

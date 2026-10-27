@@ -1,29 +1,25 @@
-CREATE DATABASE IF NOT EXISTS nido_peluches
-    CHARACTER SET utf8mb4
-    COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE peluche;
+USE peluche;
 
-USE nido_peluches;
+CREATE TABLE usuarios(
+	id_usuario INT PRIMARY KEY AUTO_INCREMENT,
+	nombre     VARCHAR(60) NOT NULL,
+	apellido   VARCHAR(200) NOT NULL,
+    email      VARCHAR(200) NOT NULL UNIQUE,
+    contrasena VARCHAR(225) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
 
-CREATE TABLE IF NOT EXISTS usuarios (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(50) NOT NULL,
-    apellido VARCHAR(50) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
-CREATE TABLE IF NOT EXISTS peluches (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    descripcion TEXT NOT NULL,
-    usuario_id INT NOT NULL,
-    adoptado BOOLEAN NOT NULL DEFAULT FALSE,
-    adoptado_por INT DEFAULT NULL,
-    visitas INT NOT NULL DEFAULT 0,
-    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_peluche_donante FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
-    CONSTRAINT fk_peluche_adoptante FOREIGN KEY (adoptado_por) REFERENCES usuarios(id) ON DELETE SET NULL,
-    INDEX idx_peluche_usuario (usuario_id),
-    INDEX idx_peluche_adoptado (adoptado)
-) ENGINE=InnoDB;
+CREATE TABLE peluches(
+	id_peluche   INT PRIMARY KEY AUTO_INCREMENT,
+    nombre       VARCHAR(60) NOT NULL,
+    descripcion  VARCHAR(250) NOT NULL,
+    visitas      INT DEFAULT 0,
+    donador_id   INT,
+    FOREIGN KEY (donador_id) REFERENCES usuarios(id_usuario) ON DELETE CASCADE ON UPDATE CASCADE,
+    adoptador_id INT,
+    FOREIGN KEY (adoptador_id) REFERENCES usuarios(id_usuario) ON DELETE CASCADE ON UPDATE CASCADE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

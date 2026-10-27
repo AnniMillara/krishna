@@ -1,159 +1,102 @@
-import pymysql
+from flask_app.config.db import connectToMySQL
 
-from db import ErrorBaseDatos, obtener_conexion
+DB = "familia_peluche"
 
+class Peluches:
+    def __init__(self, data):
+        self.id_peluche = data["id_peluche"]
+        self.nombre = data["nombre"]
+        self.descripcion = data["descripcion"]
+        self.visitas = data.get("visitas", 0)
+        self.donador_id = data.get("donador_id")
+        self.adoptador_id = data.get("adoptador_id")
+        self.created_at = data["created_at"]
+        self.updated_at = data["updated_at"]
+        self.donador_nombre = data.get("donador_nombre")
+        self.donador_apellido = data.get("donador_apellido")
+        self.adoptador_nombre = data.get("adoptador_nombre")
+        self.adoptador_apellido = data.get("adoptador_apellido")
 
-class Peluche:
-    @staticmethod
-    def crear(datos):
-        conexion = None
-        try:
-            conexion = obtener_conexion()
-            with conexion.cursor() as cursor:
-                cursor.execute(
-                    "INSERT INTO peluches (nombre, descripcion, usuario_id) VALUES (%s, %s, %s)",
-                    (datos["nombre"], datos["descripcion"], datos["usuario_id"]),
-                )
-            conexion.commit()
-            return True
-        except pymysql.MySQLError as exc:
-            if conexion:
-                conexion.rollback()
-            raise ErrorBaseDatos("Error al crear el peluche") from exc
-        finally:
-            if conexion:
-                conexion.close()
+    @classmethod
+    def guardar(cls, data):
+        query = """
+            INSERT INTO peluches (nombre, descripcion, donador_id, created_at, updated_at) 
+            VALUES (%(nombre)s, %(descripcion)s, %(donador_id)s, NOW(), NOW());
+        """
+        return connectToMySQL(DB).query_db(query, data)
 
-    @staticmethod
-    def obtener_todos():
-        conexion = None
-        try:
-            conexion = obtener_conexion()
-            with conexion.cursor() as cursor:
-                cursor.execute("""
-                    SELECT p.id, p.nombre, p.descripcion, p.usuario_id,
-                           p.adoptado, p.adoptado_por, p.visitas, p.creado_en,
-                           u.nombre AS donante
-                    FROM peluches p
-                    JOIN usuarios u ON p.usuario_id = u.id
-                    ORDER BY p.creado_en DESC
-                """)
-                return cursor.fetchall()
-        except pymysql.MySQLError as exc:
-            raise ErrorBaseDatos("Error al obtener los peluches") from exc
-        finally:
-            if conexion:
-                conexion.close()
+    @classmethod
+    def ver_todas(cls):
+        query = """
+            SELECT p.*, d.nombre AS donador_nombre, d.apellido AS donador_apellido,
+                   a.nombre AS adoptador_nombre, a.apellido AS adoptador_apellido
+            FROM peluches p
+            LEFT JOIN usuarios d ON p.donador_id = d.id_usuario
+            LEFT JOIN usuarios a ON p.adoptador_id = a.id_usuario
+            ORDER BY p.id_peluche;
+        """
+        resultados = connectToMySQL(DB).query_db(query)
+        return [cls(fila) for fila in resultados] if resultados else []
 
-    @staticmethod
-    def obtener_por_id(peluche_id):
-        conexion = None
-        try:
-            conexion = obtener_conexion()
-            with conexion.cursor() as cursor:
-                cursor.execute("""
-                    SELECT p.id, p.nombre, p.descripcion, p.usuario_id,
-                           p.adoptado, p.adoptado_por, p.visitas, p.creado_en,
-                           u.nombre AS donante, a.nombre AS adoptante
-                    FROM peluches p
-                    JOIN usuarios u ON p.usuario_id = u.id
-                    LEFT JOIN usuarios a ON p.adoptado_por = a.id
-                    WHERE p.id = %s
-                """, (peluche_id,))
-                return cursor.fetchone()
-        except pymysql.MySQLError as exc:
-            raise ErrorBaseDatos("Error al obtener el peluche") from exc
-        finally:
-            if conexion:
-                conexion.close()
+    @classmethod
+    def buscar_id(cls, id):
+        query = """
+            SELECT p.*, d.nombre AS donador_nombre, d.apellido AS donador_apellido,
+                   a.nombre AS adoptador_nombre, a.apellido AS adoptador_apellido
+            FROM peluches p
+            LEFT JOIN usuarios d ON p.donador_id = d.id_usuario
+            LEFT JOIN usuarios a ON p.adoptador_id = a.id_usuario
+            WHERE p.id_peluche = %(id_peluche)s;
+        """
+        resultado = connectToMySQL(DB).query_db(query, {"id_peluche": id})
+        return cls(resultado[0]) if resultado else None
 
-    @staticmethod
-    def actualizar(peluche_id, datos):
-        """Devuelve ok, sin_cambios, no_encontrado o sin_permiso."""
-        conexion = None
-        try:
-            conexion = obtener_conexion()
-            with conexion.cursor() as cursor:
-                cursor.execute(
-                    "SELECT usuario_id FROM peluches WHERE id = %s",
-                    (peluche_id,),
-                )
-                fila = cursor.fetchone()
-                if not fila:
-                    return "no_encontrado"
-                if fila["usuario_id"] != datos["usuario_id"]:
-                    return "sin_permiso"
+    @classmethod
+    def buscar_por_nombre_y_donador(cls, nombre, donador_id, excluir_id=None):
+        if excluir_id:
+            query = "SELECT * FROM peluches WHERE nombre=%(nombre)s AND donador_id=%(donador_id)s AND id_peluche!=%(id_peluche)s;"
+            data = {"nombre": nombre, "donador_id": donador_id, "id_peluche": excluir_id}
+        else:
+            query = "SELECT * FROM peluches WHERE nombre=%(nombre)s AND donador_id=%(donador_id)s;"
+            data = {"nombre": nombre, "donador_id": donador_id}
+        resultado = connectToMySQL(DB).query_db(query, data)
+        return cls(resultado[0]) if resultado else None
 
-                cursor.execute(
-                    "UPDATE peluches SET nombre = %s, descripcion = %s "
-                    "WHERE id = %s AND usuario_id = %s",
-                    (datos["nombre"], datos["descripcion"], peluche_id, datos["usuario_id"]),
-                )
-                conexion.commit()
-                return "sin_cambios" if cursor.rowcount == 0 else "ok"
-        except pymysql.MySQLError as exc:
-            if conexion:
-                conexion.rollback()
-            raise ErrorBaseDatos("Error al actualizar el peluche") from exc
-        finally:
-            if conexion:
-                conexion.close()
+    @classmethod
+    def modificar(cls, data):
+        query = "UPDATE peluches SET nombre=%(nombre)s, descripcion=%(descripcion)s, updated_at=NOW() WHERE id_peluche=%(id_peluche)s AND donador_id=%(donador_id)s;"
+        return connectToMySQL(DB).query_db(query, data)
+
+    @classmethod
+    def adoptar(cls, data):
+        query = "UPDATE peluches SET adoptador_id=%(adoptador_id)s, updated_at=NOW() WHERE id_peluche=%(id_peluche)s;"
+        return connectToMySQL(DB).query_db(query, data)
+
+    @classmethod
+    def sumar_visita(cls, id):
+        query = "UPDATE peluches SET visitas = visitas + 1 WHERE id_peluche = %(id_peluche)s;"
+        return connectToMySQL(DB).query_db(query, {"id_peluche": id})
+
+    @classmethod
+    def eliminar(cls, id, donador_id):
+        query = "DELETE FROM peluches WHERE id_peluche=%(id_peluche)s AND donador_id=%(donador_id)s;"
+        return connectToMySQL(DB).query_db(query, {"id_peluche": id, "donador_id": donador_id})
 
     @staticmethod
-    def adoptar(peluche_id, usuario_id):
-        """Adopta solo si el peluche continúa disponible."""
-        conexion = None
-        try:
-            conexion = obtener_conexion()
-            with conexion.cursor() as cursor:
-                cursor.execute(
-                    "UPDATE peluches SET adoptado = TRUE, adoptado_por = %s "
-                    "WHERE id = %s AND adoptado = FALSE",
-                    (usuario_id, peluche_id),
-                )
-                conexion.commit()
-                return cursor.rowcount > 0
-        except pymysql.MySQLError as exc:
-            if conexion:
-                conexion.rollback()
-            raise ErrorBaseDatos("Error al adoptar el peluche") from exc
-        finally:
-            if conexion:
-                conexion.close()
+    def validar(datos):
+        errores = []
+        if not datos["nombre"]:
+            errores.append("El nombre es obligatorio.")
+        elif len(datos["nombre"]) < 2 or len(datos["nombre"]) > 60:
+            errores.append("El nombre debe tener entre 2 y 60 caracteres.")
 
-    @staticmethod
-    def registrar_visita(peluche_id):
-        conexion = None
-        try:
-            conexion = obtener_conexion()
-            with conexion.cursor() as cursor:
-                cursor.execute(
-                    "UPDATE peluches SET visitas = visitas + 1 WHERE id = %s",
-                    (peluche_id,),
-                )
-            conexion.commit()
-        except pymysql.MySQLError as exc:
-            if conexion:
-                conexion.rollback()
-            raise ErrorBaseDatos("Error al registrar la visita") from exc
-        finally:
-            if conexion:
-                conexion.close()
+        if not datos["descripcion"]:
+            errores.append("La descripción es obligatoria.")
+        elif len(datos["descripcion"]) < 10 or len(datos["descripcion"]) > 250:
+            errores.append("La descripción debe tener entre 10 y 250 caracteres.")
 
-    @staticmethod
-    def contar_donaciones(usuario_id):
-        conexion = None
-        try:
-            conexion = obtener_conexion()
-            with conexion.cursor() as cursor:
-                cursor.execute(
-                    "SELECT COUNT(*) AS total FROM peluches WHERE usuario_id = %s",
-                    (usuario_id,),
-                )
-                fila = cursor.fetchone()
-                return fila["total"] if fila else 0
-        except pymysql.MySQLError as exc:
-            raise ErrorBaseDatos("Error al contar las donaciones") from exc
-        finally:
-            if conexion:
-                conexion.close()
+        if datos.get("donador_id") and datos["nombre"]:
+            existente = Peluches.buscar_por_nombre_y_donador(datos["nombre"], datos["donador_id"], datos.get("id_peluche"))
+            if existente:
+                errores.append("Ya tienes un peluche registrado con ese nombre.")
+        return errores
